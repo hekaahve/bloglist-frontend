@@ -22,6 +22,7 @@ const App = () => {
         username,
         password,
       });
+      window.localStorage.setItem("loggedBlogsappUser", JSON.stringify(user));
       setUser(user);
       setUsername("");
       setPassword("");
@@ -31,6 +32,13 @@ const App = () => {
         setErrorMessage(null);
       }, 5000);
     }
+  };
+
+  const handleLogout = () => {
+    window.localStorage.removeItem("loggedBlogsappUser");
+    console.log("logged out");
+    setUser(null);
+    window.location.reload(false);
   };
 
   const loginForm = () => (
@@ -62,9 +70,17 @@ const App = () => {
       <Notification message={errorMessage} />
       <h2>Blogs</h2>
       <h3>Login</h3>
-      {user
-        ? blogs.map((blog) => <Blog key={blog.id} blog={blog} />)
-        : loginForm()}
+      {user ? (
+        <div>
+          <p>{user.name} logged in</p>
+          <button onClick={() => handleLogout()}>Logout</button>{" "}
+          {blogs.map((blog) => (
+            <Blog key={blog.id} blog={blog} />
+          ))}
+        </div>
+      ) : (
+        loginForm()
+      )}
     </div>
   );
 };
