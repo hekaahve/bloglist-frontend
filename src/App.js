@@ -32,15 +32,18 @@ const App = () => {
     console.log("button clicked", event.target);
     const blogObject = {
       title: newBlog,
-      author: user.username,
+      author: user.name,
       url: newUrl,
       likes: 3,
     };
-    console.log(blogObject, "tässä lisättävä otus");
     blogService.create(blogObject).then((returnedBlog) => {
       setBlogs(blogs.concat(returnedBlog));
       setNewBlog("");
     });
+    setErrorMessage("A new blog " + blogObject.title + " added");
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 5000);
   };
 
   const handleBlogChange = (event) => {
