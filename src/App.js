@@ -6,6 +6,9 @@ import Notification from "./components/Notification";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
+  const [newBlog, setNewBlog] = useState("a new blog....");
+  const [newUrl, setNewUrl] = useState("a new url....");
+  const [newAuthor, setNewAuthor] = useState("a new url....");
   const [errorMessage, setErrorMessage] = useState("Hello blogs");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +18,41 @@ const App = () => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
   }, []);
 
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem("loggedBlogsappUser");
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON);
+      setUser(user);
+      blogService.setToken(user.token);
+    }
+  }, []);
+
+  const addBlog = (event) => {
+    event.preventDefault(); //estää sivun uudelleenlatautumisen
+    console.log("button clicked", event.target);
+    const blogObject = {
+      title: newBlog,
+      author: user.username,
+      url: newUrl,
+      likes: 3,
+    };
+    console.log(blogObject, "tässä lisättävä otus");
+    blogService.create(blogObject).then((returnedBlog) => {
+      setBlogs(blogs.concat(returnedBlog));
+      setNewBlog("");
+    });
+  };
+
+  const handleBlogChange = (event) => {
+    console.log(event.target.value); //target viittaa input-kenttään
+    setNewBlog(event.target.value); //event.target.value viittaa inputin syötekentän arvoon.
+  };
+
+  const handleUrlChange = (event) => {
+    console.log(event.target.value); //target viittaa input-kenttään
+    setNewUrl(event.target.value); //event.target.value viittaa inputin syötekentän arvoon.
+  };
+
   const handleLogin = async (event) => {
     event.preventDefault();
     try {
@@ -23,6 +61,7 @@ const App = () => {
         password,
       });
       window.localStorage.setItem("loggedBlogsappUser", JSON.stringify(user));
+      blogService.setToken(user.token);
       setUser(user);
       setUsername("");
       setPassword("");
@@ -36,7 +75,6 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem("loggedBlogsappUser");
-    console.log("logged out");
     setUser(null);
     window.location.reload(false);
   };
@@ -65,6 +103,14 @@ const App = () => {
     </form>
   );
 
+  const blogForm = () => (
+    <form onSubmit={addBlog}>
+      <input value={newBlog} onChange={handleBlogChange} />
+      <input value={newUrl} onChange={handleUrlChange} />
+      <button type="submit">save</button>
+    </form>
+  );
+
   return (
     <div>
       <Notification message={errorMessage} />
@@ -75,8 +121,9 @@ const App = () => {
           <p>{user.name} logged in</p>
           <button onClick={() => handleLogout()}>Logout</button>{" "}
           {blogs.map((blog) => (
-            <Blog key={blog.id} blog={blog} />
+            <Blog key={blog.id} blog={blog} /> //FIX: shows all blogs, not just the users
           ))}
+          {blogForm()}
         </div>
       ) : (
         loginForm()
