@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
 import Blog from "./components/Blog";
+import Toggable from "./components/Toggable";
 import LoginForm from "./components/Loginform";
+import BlogForm from "./components/BlogForm";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 import Notification from "./components/Notification";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
-  const [newBlog, setNewBlog] = useState("a new blog....");
-  const [newUrl, setNewUrl] = useState("a new url....");
-  const [newAuthor, setNewAuthor] = useState("a new url....");
+  //const [newAuthor, setNewAuthor] = useState("a new url....");
   const [errorMessage, setErrorMessage] = useState("Hello blogs");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -29,33 +29,14 @@ const App = () => {
     }
   }, []);
 
-  const addBlog = (event) => {
-    event.preventDefault(); //estää sivun uudelleenlatautumisen
-    console.log("button clicked", event.target);
-    const blogObject = {
-      title: newBlog,
-      author: user.name,
-      url: newUrl,
-      likes: 3,
-    };
+  const addBlog = (blogObject) => {
     blogService.create(blogObject).then((returnedBlog) => {
       setBlogs(blogs.concat(returnedBlog));
-      setNewBlog("");
     });
     setErrorMessage("A new blog " + blogObject.title + " added");
     setTimeout(() => {
       setErrorMessage(null);
     }, 5000);
-  };
-
-  const handleBlogChange = (event) => {
-    console.log(event.target.value); //target viittaa input-kenttään
-    setNewBlog(event.target.value); //event.target.value viittaa inputin syötekentän arvoon.
-  };
-
-  const handleUrlChange = (event) => {
-    console.log(event.target.value); //target viittaa input-kenttään
-    setNewUrl(event.target.value); //event.target.value viittaa inputin syötekentän arvoon.
   };
 
   const handleLogin = async (event) => {
@@ -107,14 +88,6 @@ const App = () => {
     );
   };
 
-  const blogForm = () => (
-    <form onSubmit={addBlog}>
-      <input value={newBlog} onChange={handleBlogChange} />
-      <input value={newUrl} onChange={handleUrlChange} />
-      <button type="submit">save</button>
-    </form>
-  );
-
   return (
     <div>
       <Notification message={errorMessage} />
@@ -126,7 +99,9 @@ const App = () => {
           {blogs.map((blog) => (
             <Blog key={blog.id} blog={blog} /> //FIX: shows all blogs, not just the users
           ))}
-          {blogForm()}
+          <Toggable buttonLabel="New Blog">
+            <BlogForm handleSubmit={addBlog} user={user} />
+          </Toggable>
         </div>
       ) : (
         loginForm()
