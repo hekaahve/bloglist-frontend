@@ -4,17 +4,12 @@ import Toggable from "./components/Toggable";
 import LoginForm from "./components/Loginform";
 import BlogForm from "./components/BlogForm";
 import blogService from "./services/blogs";
-import loginService from "./services/login";
 import Notification from "./components/Notification";
 // TODO: tehtävät 5.7 - 5.11
 const App = () => {
   const [blogs, setBlogs] = useState([]);
-  //const [newAuthor, setNewAuthor] = useState("a new url....");
   const [errorMessage, setErrorMessage] = useState("Hello blogs");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [user, setUser] = useState(null);
-  const [loginVisible, setLoginVisible] = useState(false);
 
   useEffect(() => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
@@ -38,16 +33,19 @@ const App = () => {
       setErrorMessage(null);
     }, 5000);
   };
-  const handleLogin = (user) => {
-    if (user.unauthorized) {
-      setErrorMessage(user.unauthorized);
+  const handleLogin = (loggedUser) => {
+    if (loggedUser.unauthorized) {
+      setErrorMessage(loggedUser.unauthorized);
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
     } else {
-      window.localStorage.setItem("loggedBlogsappUser", JSON.stringify(user));
-      blogService.setToken(user.token);
-      setUser(user);
+      window.localStorage.setItem(
+        "loggedBlogsappUser",
+        JSON.stringify(loggedUser.user)
+      );
+      blogService.setToken(loggedUser.user.token);
+      setUser(loggedUser.user);
     }
   };
 
@@ -55,6 +53,14 @@ const App = () => {
     window.localStorage.removeItem("loggedBlogsappUser");
     setUser(null);
     window.location.reload(false);
+  };
+
+  const filteredBlogs = () => {
+    const filtered = blogs.filter((items) => items.author === user.name);
+    const userBlogs = filtered.map((blog) => (
+      <Blog key={blog.id} blog={blog} />
+    ));
+    return userBlogs;
   };
 
   return (
@@ -65,15 +71,13 @@ const App = () => {
         <div>
           <p>{user.name} logged in</p>
           <button onClick={() => handleLogout()}>Logout</button>{" "}
-          {blogs.map((blog) => (
-            <Blog key={blog.id} blog={blog} /> //FIX: shows all blogs, not just the users
-          ))}
-          <Toggable buttonLabel="New Blog">
+          {filteredBlogs()}
+          <Toggable buttonLabel="New Blog" cancel="cancel">
             <BlogForm handleSubmit={addBlog} user={user} />
           </Toggable>
         </div>
       ) : (
-        <Toggable buttonLabel="Log in">
+        <Toggable buttonLabel="Log in" cancel="cancel">
           <LoginForm handleSubmit={handleLogin} />
         </Toggable>
       )}

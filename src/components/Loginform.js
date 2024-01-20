@@ -12,6 +12,7 @@ const LoginForm = ({ handleSubmit }) => {
         username,
         password,
       });
+      console.log(user, "täällä");
       handleSubmit({ user });
       setUsername("");
       setPassword("");
