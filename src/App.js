@@ -6,7 +6,7 @@ import BlogForm from "./components/BlogForm";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 import Notification from "./components/Notification";
-
+// TODO: tehtävät 5.7 - 5.11
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   //const [newAuthor, setNewAuthor] = useState("a new url....");
@@ -38,24 +38,16 @@ const App = () => {
       setErrorMessage(null);
     }, 5000);
   };
-
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    try {
-      const user = await loginService.login({
-        username,
-        password,
-      });
-      window.localStorage.setItem("loggedBlogsappUser", JSON.stringify(user));
-      blogService.setToken(user.token);
-      setUser(user);
-      setUsername("");
-      setPassword("");
-    } catch (exception) {
-      setErrorMessage("wrong credentials");
+  const handleLogin = (user) => {
+    if (user.unauthorized) {
+      setErrorMessage(user.unauthorized);
       setTimeout(() => {
         setErrorMessage(null);
       }, 5000);
+    } else {
+      window.localStorage.setItem("loggedBlogsappUser", JSON.stringify(user));
+      blogService.setToken(user.token);
+      setUser(user);
     }
   };
 
@@ -63,29 +55,6 @@ const App = () => {
     window.localStorage.removeItem("loggedBlogsappUser");
     setUser(null);
     window.location.reload(false);
-  };
-
-  const loginForm = () => {
-    const hideWhenVisible = { display: loginVisible ? "none" : "" };
-    const showWhenVisible = { display: loginVisible ? "" : "none" };
-
-    return (
-      <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setLoginVisible(true)}>log in</button>
-        </div>
-        <div style={showWhenVisible}>
-          <LoginForm
-            username={username}
-            password={password}
-            handleUsernameChange={({ target }) => setUsername(target.value)}
-            handlePasswordChange={({ target }) => setPassword(target.value)}
-            handleSubmit={handleLogin}
-          />
-          <button onClick={() => setLoginVisible(false)}>cancel</button>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -104,7 +73,9 @@ const App = () => {
           </Toggable>
         </div>
       ) : (
-        loginForm()
+        <Toggable buttonLabel="Log in">
+          <LoginForm handleSubmit={handleLogin} />
+        </Toggable>
       )}
     </div>
   );
